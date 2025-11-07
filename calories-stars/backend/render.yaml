@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: calories-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn fastapi_app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: CAL_DB_PATH
+        value: /var/data/calories_bot.db
+      - key: USER_TZ_OFFSET_HOURS
+        value: "5"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      - key: REQUIRE_AUTH
+        value: "true"
+      - key: FRONTEND_ORIGIN
+        value: "*"
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+    disk:
+      name: calories-sqlite
+      mountPath: /var/data
+      sizeGB: 2
+
+  - type: static
+    name: calories-webapp
+    buildCommand: npm ci && npm run build
+    publishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: VITE_API_BASE
+        value: "https://calories-backend.onrender.com"
